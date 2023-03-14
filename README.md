@@ -9,26 +9,31 @@ Einsteinufer 17, 10587 Berlin
 이 논문은 영상의 프레임 증가에 따라 기존 알고리즘과 견줄 수 있는 훨신 간단한 알고리즘을 제시하고 있다.
 
 ## 1. Introduction
-- **객체 추적의 사용 사례** : 객체 추적은 트래픽 분석, 스포츠 또는 포렌식과 같은 분석 시스템에 정보를 제공하거나, 차량의 번호판을 인식 얼굴 인식과 같은 곳에서 사용되고 있다.
-- **한계점 제시** : 특히,  tracking-by-detection systems의 일반적인 어려움 온라인으로 진행될 경우 false positive 와 missed detections가 나타날 수도 있는 제한된 성능이다. 또한 여러 객체들이 서로 교차하며 경계가 모호해질 경우 더 많은 문제들이 발생한다.
-- **한계점을 해결하는 다양한 방법들을 제시하고 있다.**
-- 따라서 이 논문은 [참고된 논문\[8\]](#5-references)에서 소개된 아이디어를 기반하여 단순한 tracking 접근에 대해서 평가를 한다. 
-- **논문의 활용성** : 제안하는 방법은 다른 방법들에 대한 단순한 방법으로 사용될 수 있고, 추가되는 tracking 알고리즘에 있어 기준이 될수 있다.
+### **객체 추적의 사용 사례** 
+  객체 추적은 트래픽 분석, 스포츠 또는 포렌식과 같은 분석 시스템에 정보를 제공하거나, 차량의 번호판 인식, 얼굴 인식과 같은 곳에서 사용되고 있다.
+### **한계점 제시** 
+  특히,  tracking-by-detection systems의 일반적인 어려움은 실시간으로 진행될 경우 false positive 와 missed detections이 나타날 수도 있다는 것이다. 또한 여러 객체들이 서로 교차하며 경계가 모호해질 경우 더 많은 문제들이 발생한다.
+### **한계점을 해결하는 다양한 방법들이 있고 최근 연구는 상당히 발전되어 있 그 중에서...**
+ [참고된 논문\[8\]](#5-references)에서 소개된 아이디어를 기반하여 단순한 tracking 접근에 대해서 작성하고 이는 최근 연구된 detector들 보다 더 단순한 tracking 접근으로 성공적인 결과를 만들었다.  
+ 하지만 제안하는 tracking 알고리즘이 모든 경우에 있어서 필요한 것은 아니라는 것을 확인 해야한다.  
+### **논문의 활용성** 
+  제안하는 방법은 다른 방법들을 아우르는 단순한 방법으로 사용될 수 있고, 추가되는 tracking 알고리즘에 있어 기준이 될수 있다.
 ![image](https://user-images.githubusercontent.com/71332005/224903580-f4a7b85d-3391-4bc6-8a05-57a4e9c51d8d.png)
 
 ## 2. Method
-- **가정**   
-  + 검출기(detector)는 매 프레임마다 추적(track)할 모든 객체를 검출(detect)한다. 즉, detection에 "gap"이 아예 없거나 어이 없다.
-  + 충분히 높은 프레임을 사용할 때 일반적으로 발생하는 overlap IOU가 충분히 높다고 가정한다.
+### **가정**   
+- 매 프레임마다 검출기(detector)는 추적(track)할 모든 객체를 검출(detect)한다. 즉, detection에 "gap"이 아예 없거나 거이 없다.
+- 충분히 높은 프레임을 사용할 때 일반적으로 발생하는 overlap IOU가 충분히 높다고 가정한다.
+  + overlap IOU : 간단하게 현재 프레임의 객체와 다음 프레임 객체가 겹쳐있는 정도.   
 
 $$IOU(a,b)=\frac{Area(a)\bigcap Area(b)}{Area(a)\bigcup Area(b)}$$  
 
 - 위 두가지 가정이 모두 충족된다면, 이미지 정보 없이도 수행될 수 있다.  
-- *이 논문은 특정한 임계값* $\sigma_{IOU}$ *를 만족할 경우 이전 프레임의 탐지 결과와 가장 높은 IOU값을 같는 탐지결과를 연관 시킴으로서 간단한 IOU Tracker를 제시한다.*
+- **이 논문은 특정한 임계값* $\sigma_{IOU}$ *를 만족할 경우 이전 프레임의 detection결과와 가장 높은 IOU값을 같는 detection결과를 연관 시킴으로서 간단한 IOU Tracker를 제시한다.**
 
-- **성능향상**
-  + $t_{min}$보다 길이가 짧거나 $\sigma_h$이상의 점수를 가진 detection이 하나도 없는 track을 제거함으로 성능을 향상시킬 수 있다.(짧은 track들은 일반적으로 false positive를 기반으로 하고 출력에 혼란(clutter)을 추가하기 때문에)
-  + track에 적어도 하나 이상의 높은 score의 detection을 갖도록 요구하면, track의 완성도를 위한 낮은 score의 detection에 이점을 가진다.
+### **성능향상**
+- $t_{min}$보다 길이가 짧거나 $\sigma_h$이상의 점수를 가진 detection이 하나도 없는 track을 제거함으로 성능을 향상시킬 수 있다.(짧은 track들은 일반적으로 false positive를 야기하고 출력에 혼란(clutter)을 추가하기 때문에)
+- track에 적어도 하나 이상의 높은 점수를 가진 detection을 갖도록 요구하면, track의 완성도를 위한 낮은 점수의 detection에해대해 이점을 가진다.
 
 - 논문에서 제안한 **알고리즘 1**이다. 
 ![Algirithm_1](https://user-images.githubusercontent.com/71332005/224783065-8a86d68e-d903-4abd-a078-f17df4b41ee3.png)
@@ -38,16 +43,16 @@ $$IOU(a,b)=\frac{Area(a)\bigcap Area(b)}{Area(a)\bigcup Area(b)}$$
   + $T_f$: 완료된(finished) track
   + $F$: frame 수
 
-- 알고리즘의 5번 라인에서는 가장 잘 일치하지만 할당되지 않은 detection만 track에 추가할 후보가 된다.
-  + 이는 반드시 detection $D_f$와 Track $T_a$사이의 연관성으로 이어지지 않지만, 해당 프레임에서 모든 IOU들의 합을 최대화 하는 Hungatian algorithm응 적용함 으로 해결 될 수 있다.
-  + 일반적인 $\sigma_{IOU}$는 검출기의 비-최대 억제(non-maxima suppression)를 위한 IOU 임계값과 같은 범위에 있으므로 가장 높은 IOU를 선택하는 것은 합리적인 huristic이다.
+- 알고리즘의 5번 라인을 보면 가장 잘 일치하지만 할당되지 않은 detection만 track에 추가할 후보가 된다.
+  + 이는 반드시 detection($D_f$)와 Track($T_a$)사이의 연관성으로 이어지진 않지만, 해당 프레임에서 모든 IOU들의 합을 최대화 하는 Hungatian algorithm을 적용함 으로 해결 할 수 있다.
+  + 일반적인 $\sigma_{IOU}$는 검출기의 비-최대 억제(non-maxima suppression)를 위한 IOU 임계값과 같은 범위에 있으므로 가장 높은 IOU를 선택하는 것은 합리적인 huristic한 방법이다.
 
-- 알고리즘의 이점
-  + 제안한 방법의 복잡도는 다른 최신의 tracker들과 비교 결과 매우 낮다.
-  + 프레임의 시각적 정보는 사용되지 않으므로 감지 수준에 대한 간단한 필터링 방법으로도 볼 수 있다.
-  + tracker가 최신 검출기와 함께 온라인으로 사용되는 경우, 최신 검출기에 비해 tracker의 계산 비용은 무시할 수 있는 수준이다.
-  + tracker를 단독으로 수행해도 100K의 fps를 초과하는 프레임율을 쉽게 달성할 수 있다.
-  + tracker의 속도적 이점은 출력을 이미지나 움직임 정보를 사용하여 연결할 수 있는 tracklets으로 고려함으로 tracking 구성 요소를 추가할 수 있다는 점에 유의한다. 
+### 제안한 알고리즘의 이점
+  + 제안한 방법은 다른 최신의 tracker들과 비교해도 매우 낮은 복잡도를 가지고 있다.
+  + 프레임의 시각적 정보는 사용되지 않아도 되기 때문 감지 수준에 대한 간단한 필터링 방법으로도 볼 수 있다.
+  + 실시간으로 tracker가 최신 검출기(detector)와 함께 사용되는 경우, 최신 검출기에 비해 tracker의 계산 비용은 무시할 수 있는 수준이다.
+  + tracker를 단독으로 수행해도 100Kfps를 초과하는 프레임율을 쉽게 달성할 수 있다.
+  + tracker의 속도적 이점으로 출력을 이미지나 움직임 정보를 사용하여 연결할 수 있는 tracklets으로 고려함으로 detector의 결과에 tracking 구성 요소를 추가할 수 있다. 
 
 ## 3. Experiments  
 - **DETRAC dataset를 사용하여 제안된 추적기의 성능을 조사했다.** DETRAC dataset는 차량 검출 및 추적을 목적으로 10시간 이상의 영상으로 구성된 데이터셋이다.
