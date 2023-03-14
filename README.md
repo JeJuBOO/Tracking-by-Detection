@@ -27,7 +27,7 @@ $$IOU(a,b)=\frac{Area(a)\bigcap Area(b)}{Area(a)\bigcup Area(b)}$$
 - *이 논문은 특정한 임계값* $\sigma_{IOU}$ *를 만족할 경우 이전 프레임의 탐지 결과와 가장 높은 IOU값을 같는 탐지결과를 연관 시킴으로서 간단한 IOU Tracker를 제시한다.*
 
 - **성능향상**
-  + $t_min$보다 길이가 짧거나 $\sigma_h$이상의 점수를 가진 detection이 하나도 없는 track을 제거함으로 성능을 향상시킬 수 있다.(짧은 track들은 일반적으로 false positive를 기반으로 하고 출력에 혼란(clutter)을 추가하기 때문에)
+  + $t_{min}$보다 길이가 짧거나 $\sigma_h$이상의 점수를 가진 detection이 하나도 없는 track을 제거함으로 성능을 향상시킬 수 있다.(짧은 track들은 일반적으로 false positive를 기반으로 하고 출력에 혼란(clutter)을 추가하기 때문에)
   + track에 적어도 하나 이상의 높은 score의 detection을 갖도록 요구하면, track의 완성도를 위한 낮은 score의 detection에 이점을 가진다.
 
 - 논문에서 제안한 **알고리즘 1**이다. 
@@ -76,43 +76,56 @@ $$IOU(a,b)=\frac{Area(a)\bigcap Area(b)}{Area(a)\bigcup Area(b)}$$
 
 - Table 2.의 범위 내의 3가지 parameters의 모든 조합을 평가하기 위해 각 detector 당 64번 실행시킨 결과를 Figure 2로 나타냈다. UA-DETRAC 챌린지의 기본 측정기법(metric)인 PR-MOTA metric으로 최상의 구성을 선택한다.
 
--각 detector에 대한 최상의 결과와 구성을 Table 3에서 볼 수있다.
+- 각 detector에 대한 최상의 결과와 구성을 Table 3에서 볼 수있다.
 ![Table 3](https://user-images.githubusercontent.com/71332005/224925563-1adb1ebf-f21b-4edd-b5d2-188f2ce1434a.png)
 
 
-- **위 Table 3결과에 대한 분석**
-  +  위 결과에서 보여지듯 EB detector가 가장 높은 점수를 획득했다.
+- **결과에 대한 분석**
+  +  위 결과에서 보여지듯 **EB detector가 가장 높은 점수를 획득**했다.
   +  EB detector는 매우 낮은 점수를 가진 detection으로 많은 false positive를 생성함으로, 평가 metric의 잠재적인 결함으로 점수가 높게 나온것으로 보여진다.
   +  이는 높은 재현율(Recall)과 낮은 정밀도(Precision)으로 PR curve를 효과적으로 확장했다.
   +  그러나, IOU tracker는 이러한 detections에 영향을 받지 않지만 MOTA-over-PR curve의 아래 영역(AUC)은 상당히 커지게 된다.
-  +  따라서 PR curve가 정밀도(Precision) 축과 재현율(Recall) 축이 있는 교차점 사이에서 완전히 정의된 경우에만 공정한 비교가 가능할 것이다.  
+  +  따라서 PR curve가**정밀도(Precision) 축과 재현율(Recall) 축이 있는 교차점 사이에서 완전히 정의된 경우에만 공정한 비교가 가능**할 것이다.  
 
-  + CompACT는 다른 기준 검출보다 PR 곡선의 평균 정밀도(자세한 내용은 [17] 참조)가 훨씬 우수하지만 ACF 및 R-CNN을 사용하면 더 나은 PR-MOTA 값을 달성할 수 있다. 
+  + CompACT는 다른 detector보다 PR curve의 평균 정밀도가 훨씬 우수하지만 ACF 및 R-CNN을 사용하면 더 나은 PR-MOTA 값을 달성할 수 있다.(자세한 내용은 [[17]](#5-references) 참조)
+  + 왜냐하면 **CompACT의 detection은 R-CNN과 ACF의 detection보다 적지만 더 정확**하기 때문이.
+  + 그러나 우리의 detector는 누락된 탐지(missing detection)를 예측할 수 없기 때문에 더 많은 detection이 있어 이점을 얻는다. 
+  + 특히, DETRAC evaluation script에서는 tracker를 실행하기 전에 $\sigma_l$를 사용하여 detection의 임계값을 적용한다. 
+  + 일치하는 detection이 없는 경우, 이를 [8]에 따라 상당히 개선할 수 있는 방법인 $sigma < sigma_l$를 이용한 detection을 찾는것을 억제한다.   
+   
+  + 따라서, **track의 single missed detection은 ID switch와 false negative를 모두 야기시켜 전체 성능을 저하**시킨다.
+  + 반면, false positives는 보통 점수가 낮은 detections으로 구성된 짧은 track들을 생성하기 때문에 어느 정도 배제 될 수 있다.
+  + 이러한 track들은 $sigma_h$및 최소 길이 $t_{min}$을 사용하여 점수가 높은 detections에 임계값을 적용함으로써 filtering한다.
 
+- Evaluation에 기반하여, 본 논문에서 제안한 tracker는 DETRAC-Test 데이터에 대해 R-CNN detection(sigma_IOU=0.5, sigma_h=0.7, t_min=2)과 EB detection(sigma_IOU=0.5, sigma_h=0.8, t_min=2)을 이용하여 테스트가 진행한다.(6개의 최신 tracker들에 대한 비교 결과는 Table 3에 있다.)
 
+- 본 논문에서 제안한 IOU tracker는 정확도(PR-MOTA) 및 정밀도(PR-MOTP)에 대한 전체 측정기법(metric)에서 뿐만 아니라 mostly tracked(PR-MT)및 mostly lost(PR-ML)에 대해서도 다른 방법을 상당히 능가한다.
+- 특히, R-CNN detections의 경우에는 100Kfps이상의 속도가 달성되는데, 이는 0.7~390fps의 기준 방법들보다 빠른 수치이다.
+- EB detector가 높은 점수의 detection 양이 많으면, 더 넓은 범위의 다양한 $sigma_l$에서 처리할 detection의 수를 크게 증가시켜 달성 가능한 fps의 속도를 감소시다
 
+training data와 overall test data 사이의 큰 성능 차이는 해당 datasets 사이에서 서로 다른  detector들의 정확도(accuracy)와 연관이 있을 것임.  
 
+Figure 3은 최종 PR-MOTA 및 PR-MOTP 점수에 요약된 $sigma_l$의 다른 값에 대한 MOTA 및 MOTP 점수를 보여준다.
 
+![image](https://user-images.githubusercontent.com/71332005/224942567-e65b3893-bebe-4aeb-b0fc-fed343971ca8.png)
 
+DETRAC 데이터셋 같은 경우에는 IOU tracker와 같은 단순한 tracking 기법이 지난 10년간의 연구에 기반한 접근들보다 다 우수한 결과를 보여준다.
+그러나, 보행자 tracking과 같은 짧은 프레임에서 크기와 종횡비에 더 많은 변화가 생긴다. 이와 같  occlusion이 높고 프레임률이 낮으면 overlap을 계산하여 detection를 일치시키는 성공률이 낮아 질 수 있고, 이는 보다 정교한 방법이 필요하다는 것을 나타낸다.
 
+- 이러한 점을 고려하여, 보행자 tracking을 위한 MOT16/MOT17[11] 벤치마크에 대해 IOU tracker의 성능을 평가한다.(이 또한 최적의 파라미터를 설정하고, 테스트를 진행한다.)
 
+![image](https://user-images.githubusercontent.com/71332005/224945590-9eada754-5184-42b0-ae4d-b4eb0b1631ae.png)
 
+FR-CNN을 이용한 IOU tracker는 평균보다 다소 높은 성능을 달성하였으며, 보다 정확한 SDP detections을 이용할 경우 MOTA score를 크게 높일 수 있으며, 본 논문 작성 시점에서는 64개의 trackers들 중에서 13위의 성능을 보인.
+이는 보행자 tracking, 카메라 이동, 다양한 frame rates 등의 보다 도전적인 상황에서도 경쟁력 있는 결과를 보여주고 있음
 
+추가적으로, 정적인 카메라에서 고정된 크기의 객체를 다루는 차량 tracking의 경우 높은 frame rates의 높은 정확도의 detections을 보였으며, 단순한 수준에서는 우수한 tracking을 달성할 수 있었다.
 
+이러한 tracking 접근의 결과가 새로운 tracking 벤치마크의 고안을 위해 고려되길 추천한다. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+## 4. Conclusions
+ 본 논문에서, 우리는 간단한 수단으로 성공적인 추적이 가능하다는 것을 보여주었다. 우리가 제시한 IOU 추적기는 낮은 복잡성과 계산 비용으로 최신 기법들의 성능을 크게 능가한다. 이것은 CNN 기반 접근법의 유행과 최근 객체 감지 영역의 발전으로 인해 가능해다. 일반적으로 더 높은 비디오 프레임률과 결합하여 tracking-by-detection 프레임워크에서 multi-object tracker에 대한 요구 사항이 크게 변경되었다. 우리의 간단하지만 효과적인 IOU tracker는 이러한 특성을 활용하며 새로운 조건 내에서 추적기의 설계를 반영하는 예가 될 수 있다.
+ 
 ## 5. References
 \[5\] : Z. Cai, M. Saberian, and N. Vasconcelos. Learning complexity-aware cascades for deep pedestrian detection. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR), pages 3361–3369, 2015.  
 \[7\] : P. Dollar, R. Appel, S. Belongie, and P. Perona. Fast feature ´ pyramids for object detection. IEEE Transactions on Pattern Analysis and Machine Intelligence, 36(8):1532–1545, 2014.  
@@ -152,12 +165,12 @@ $$Recall=\frac{TP}{TP+FN}$$
 $$Accuracy=\frac{TP+TN}{TP+FN+FP+TN}$$ 
 정확도는 실제 데이터 비율에 영향을 많이 받는 치명적인 단점이 있다. 전체 데이터 중 99%가 Posotive인 데이터가 있다면, 모델이 데이터 전부를 Positive라고 예측하더라도 99%의 정확도를 나타낸다.
 
-5. F1 Score
+5. F1 Score  
 앞서 정밀도와 재현율은 Trade-off 관계가 있다. 이러한 관계는 정밀도가 좋아지면 재현율이 감소하고, 정밀도가 나빠지면 재현율이 좋아지는 관계이다.
 이를 적절히 고려하여 종합적이 평가를 하기 위한 평가이다.
 $$F1 Score=\frac{2\times precision\times recall}{precision + recall}$$ 
 
-6. ROC curve
+6. ROC curve  
 ROC(Receiver Operating Characteristics) 곡선은 x축을 False Positive Rate로 y축을 True Positive Rate(TPR)로 하여 생긴 곡선을 의미한다.
 
 $$TPR(Recall)=\frac{TP}{TP+FN}$$  
@@ -174,7 +187,7 @@ $$FPR=\frac{FP}{FP+TN}$$
 다음 블로그에 아주 친절한 설명이 있다.  
 [공돌이의 수학정리노트, ROC curve](https://angeloyeo.github.io/2020/08/05/ROC.html)  
 
-7. P-R curve
+7. P-R curve  
 P-R curve(Precision-Recall curve)는 위에 간단히 설명한 정밀도와 재현율의 관계를 나타낸다.   
 Dataset의 label 분포가 불균등 할때 P-R curve가 ROC curve에 비해 분석에 유리하다.
 
