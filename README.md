@@ -150,7 +150,7 @@ FR-CNN을 이용한 IOU tracker는 평균보다 다소 높은 성능을 달성�
 모델의 성능을 평가하기 위한 지표인 정확도(Accuracy), 정밀도(Precision), 재현율(Recall), F1 score등이 있다.  
 이러한 평가지표를 알아보기에 앞서 혼행렬(Confusion matrix)를 알아보자.
 
-1. 혼행렬(Confusion Matrix)  
+1. 혼동행렬(Confusion Matrix)  
 모델이 예측한 결과(Predicted Label)와 실제 결과(Real Label)를 비교하는 표이다. 
 ![Confusion_Matrix](https://user-images.githubusercontent.com/71332005/224758716-fec85a35-d559-437d-afd2-3abdbca7a1b3.png)
 - True Positive(TP) : 실제 Positive인 정답을 Positive라고 예측 (True)
